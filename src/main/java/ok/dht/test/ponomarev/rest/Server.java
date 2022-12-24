@@ -16,11 +16,14 @@ public final class Server extends HttpServer {
 
     @Override
     public void handleDefault(Request request, HttpSession session) throws IOException {
+        // TODO: Мб нам не нужна тут итерация по списку? Будет интересно посмотреть ускорит ли что-то в async-profiler
+        // JIT?
+
         if (!ServerConfiguration.SUPPORTED_METHODS.contains(request.getMethod())) {
             session.sendResponse(new Response(Response.METHOD_NOT_ALLOWED, Response.EMPTY));
         }
 
-        if (!ServerConfiguration.BASE_ENDPOINT.equals(request.getPath())) {
+        if (!ServerConfiguration.SUPPORTED_ENDPOINTS.contains(request.getPath())) {
             session.sendResponse(new Response(Response.BAD_REQUEST, Response.EMPTY));
         }
     }

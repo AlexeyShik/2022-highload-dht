@@ -1,15 +1,16 @@
-package ok.dht.test.ponomarev.rest;
+package ok.dht.test.ponomarev.rest.service;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 import ok.dht.Service;
 import ok.dht.ServiceConfig;
-import ok.dht.test.ServiceFactory;
 import ok.dht.test.ponomarev.dao.MemorySegmentDao;
+import ok.dht.test.ponomarev.rest.Server;
 import ok.dht.test.ponomarev.rest.conf.ServerConfiguration;
-import ok.dht.test.ponomarev.rest.handlers.DaoRequestHandler;
+import ok.dht.test.ponomarev.rest.handlers.EntityRequestHandler;
 import one.nio.http.HttpServer;
 import one.nio.http.HttpServerConfig;
 import one.nio.server.AcceptorConfig;
@@ -28,36 +29,33 @@ public class DaoService implements Service {
 
     @Override
     public CompletableFuture<?> start() throws IOException {
-        // Может создавать файлы
-        server = new Server(createConfig(config.selfPort()));
-        dao = new MemorySegmentDao(config.workingDir(), ServerConfiguration.DAO_INMEMORY_LIMIT_BYTES);
+        try {
+            final Path workingDir = config.workingDir();
+            if (Files.notExists(workingDir)) {
+                Files.createDirectory(workingDir);
+            }
 
-        // Регистрируем текущий объект как хендлер запросов. 
-        // Мб стоит вынести его в другой класс, а то тут каша какая-то уже
-        server.addRequestHandlers(new DaoRequestHandler(dao));
+            // Может создавать файлы
+            dao = new MemorySegmentDao(workingDir, ServerConfiguration.DAO_INMEMORY_LIMIT_BYTES);
 
-        // блокирующий старт (?)
-        server.start();
+            server = new Server(createConfig(config.selfPort()));
+            // Регистрируем текущий объект как хендлер запросов.
+            server.addRequestHandlers(new EntityRequestHandler(dao));
+            // блокирующий старт (?)
+            server.start();
 
-        return STUB_COMPLETED_FUTURE;
+            return STUB_COMPLETED_FUTURE;
+        } catch (Exception e) {
+            return CompletableFuture.failedFuture(e);
+        }
     }
 
     @Override
     public CompletableFuture<?> stop() throws IOException {
-        server.stop();
         dao.close();
+        server.stop();
 
         return STUB_COMPLETED_FUTURE;
-    }
-
-
-    @ServiceFactory(stage = 1, week = 3)
-    public static class Factory implements ServiceFactory.Factory {
-
-        @Override
-        public Service create(ServiceConfig config) {
-            return new DaoService(config);
-        }
     }
 
     private static HttpServerConfig createConfig(int port) {

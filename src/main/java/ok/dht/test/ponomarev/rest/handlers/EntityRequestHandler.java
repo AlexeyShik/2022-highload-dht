@@ -14,16 +14,25 @@ import one.nio.http.RequestMethod;
 import one.nio.http.Response;
 import one.nio.util.Utf8;
 
-public class DaoRequestHandler {
+public class EntityRequestHandler {
     private final MemorySegmentDao dao;
 
-    public DaoRequestHandler(MemorySegmentDao dao) {
+    private static final Response BAD_REQUEST = new Response(
+        Response.BAD_REQUEST,
+        Response.EMPTY
+    );
+
+    public EntityRequestHandler(MemorySegmentDao dao) {
         this.dao = dao;
     }
 
-    @Path(ServerConfiguration.BASE_ENDPOINT)
+    @Path(ServerConfiguration.V_0_ENTITY_ENDPOINT)
     @RequestMethod(Request.METHOD_GET)
     public Response getById(@Param(value = "id", required = true) String id) {
+        if (id.isEmpty()) {
+            return BAD_REQUEST;
+        }
+
         try {
             final TimestampEntry entry = dao.get(
                 Utils.memorySegmentFromString(id)
@@ -43,7 +52,7 @@ public class DaoRequestHandler {
                 //TODO: Аллокация массива байт)))
                 entry.value().toByteArray()
             );
-        } catch (IOException e) {
+        } catch (Exception e) {
             return new Response(
                 Response.SERVICE_UNAVAILABLE,
                 Response.EMPTY
@@ -53,9 +62,13 @@ public class DaoRequestHandler {
 
     // Это PUT и мы знаем ID, то так же его можно использовать для создания 
     // записи. Почему клиенту известен ID при создании, он должен аллоцироваться на сервере.
-    @Path(ServerConfiguration.BASE_ENDPOINT)
+    @Path(ServerConfiguration.V_0_ENTITY_ENDPOINT)
     @RequestMethod(Request.METHOD_PUT)
     public Response put(Request request, @Param(value = "id", required = true) String id) {
+        if (id.isEmpty()) {
+            return BAD_REQUEST;
+        }
+
         try {
             final byte[] body = request.getBody();
             if (body == null) {
@@ -85,9 +98,13 @@ public class DaoRequestHandler {
         }
     }
 
-    @Path(ServerConfiguration.BASE_ENDPOINT)
+    @Path(ServerConfiguration.V_0_ENTITY_ENDPOINT)
     @RequestMethod(Request.METHOD_DELETE)
     public Response delete(@Param(value = "id", required = true) String id) {
+        if (id.isEmpty()) {
+            return BAD_REQUEST;
+        }
+
         try {
             dao.upsert(
                 new TimestampEntry(
