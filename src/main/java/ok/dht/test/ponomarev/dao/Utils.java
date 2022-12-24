@@ -1,11 +1,14 @@
 package ok.dht.test.ponomarev.dao;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 
 import jdk.incubator.foreign.MemoryAccess;
 import jdk.incubator.foreign.MemorySegment;
 
 public final class Utils {
+    private Utils() {}
+    
     public static final Comparator<MemorySegment> COMPARATOR = (MemorySegment s1, MemorySegment s2) -> {
         final long mismatch = s1.mismatch(s2);
         if (mismatch == -1) {
@@ -25,11 +28,24 @@ public final class Utils {
                 MemoryAccess.getByteAtOffset(s2, mismatch)
         );
     };
-
-    private Utils() {
-    }
     
     public static int compare(MemorySegment key1, MemorySegment key2) {
         return COMPARATOR.compare(key1, key2);
+    }
+
+    public static String memorySegmentToString(MemorySegment data) {
+        if (data == null) {
+            return null;
+        }
+
+        return StandardCharsets.UTF_8.decode(data.asByteBuffer()).toString();
+    }
+
+    public static MemorySegment memorySegmentFromString(String data) {
+        if (data == null) {
+            return null;
+        }
+
+        return MemorySegment.ofArray(data.getBytes(StandardCharsets.UTF_8));
     }
 }
