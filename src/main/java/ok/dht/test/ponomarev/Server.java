@@ -1,36 +1,29 @@
 package ok.dht.test.ponomarev;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collections;
-import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import ok.dht.Service;
 import ok.dht.ServiceConfig;
 
 public final class Server {
-    static final String PORT_PROP_KEY = "port";
+    private static final int PORT = 8080;
+    private static final String URL = "http//:localhost";
 
-    static final Properties prop = new Properties();
+    private Server() { }
 
-    static {
-        prop.setProperty(PORT_PROP_KEY, "8080");
-    }
+    public static void main(String[] args) throws Exception {
+        final String url = URL + ':' + PORT;
 
-    private Server() {}
-
-    public static void main(String[] args) throws IOException {
-        final int port = Integer.parseInt(prop.getProperty(PORT_PROP_KEY));
-        final String url = "http://localhost:" + port;
-        
         final ServiceConfig cfg = new ServiceConfig(
-            port,
+            PORT,
             url,
             Collections.singletonList(url),
             Files.createTempDirectory("server")
         );
 
         final Service service = new DemoService(cfg);
-        
+        service.start().get(1, TimeUnit.SECONDS);
     }
 }

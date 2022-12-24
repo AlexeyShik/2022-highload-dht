@@ -21,17 +21,24 @@ public class DemoService implements Service {
 
     private final ServiceConfig config;
     private HttpServer server;
-    private final MemorySegmentDao dao;
 
-    public DemoService(ServiceConfig config) throws IOException {
+    private MemorySegmentDao dao;
+
+    public DemoService(ServiceConfig config) {
         this.config = config;
-        this.dao = new MemorySegmentDao(config.workingDir(), limitBytes);
     }
 
     @Override
     public CompletableFuture<?> start() throws IOException {
+        // Может создавать файлы
+        dao = new MemorySegmentDao(config.workingDir(), limitBytes);
+
         server = new HttpServer(createConfigFromPort(config.selfPort()));
+        // блокирующий старт (?)
         server.start();
+        
+        // Регистрируем текущий объект как хендлер запросов. 
+        // Мб стоит вынести его в другой класс, а то тут каша какая-то уже
         server.addRequestHandlers(this);
 
         return CompletableFuture.completedFuture(null);
@@ -39,6 +46,9 @@ public class DemoService implements Service {
 
     @Override
     public CompletableFuture<?> stop() throws IOException {
+        dao.close();
+        server.stop();
+
         return CompletableFuture.completedFuture(null);
     }
 
@@ -47,8 +57,17 @@ public class DemoService implements Service {
     public Response handleGet() {
         return new Response(
             Response.OK,
-            Utf8.toBytes("HELLO\n")
+            Utf8.toBytes("Hello, world!\n")
         );
+    }
+
+    @ServiceFactory(stage = 0, week = 3)
+    public static class Factory implements ServiceFactory.Factory {
+
+        @Override
+        public Service create(ServiceConfig config) {
+            return new DemoService(config);
+        }
     }
 
     private static HttpServerConfig createConfigFromPort(int port) {
@@ -62,14 +81,5 @@ public class DemoService implements Service {
         };
 
         return httpConfig;
-    }
-
-    @ServiceFactory(stage = 0, week = 3)
-    public static class Factory implements ServiceFactory.Factory {
-
-        @Override
-        public Service create(ServiceConfig config) {
-            return new DemoService(config);
-        }
     }
 }

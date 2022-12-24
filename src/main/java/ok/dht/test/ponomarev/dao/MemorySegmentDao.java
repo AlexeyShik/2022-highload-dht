@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import jdk.incubator.foreign.MemorySegment;
 import ok.dht.test.ponomarev.dao.store.Storage;
 
+//TODO: Мне не нравится, что конструктор занимается созданием всякого. 
+// МБ стоит сделать явные контракты. В коде хер разберешься
 public class MemorySegmentDao implements Dao<MemorySegment, TimestampEntry> {
     private final Storage storage;
     private final AtomicLong sizeBytes;
