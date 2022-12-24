@@ -16,8 +16,6 @@ import one.nio.http.HttpServerConfig;
 import one.nio.server.AcceptorConfig;
 
 public class DaoService implements Service {
-    private static final CompletableFuture<?> STUB_COMPLETED_FUTURE = CompletableFuture.completedFuture(null);
-
     private final ServiceConfig config;
 
     private HttpServer server;
@@ -44,7 +42,7 @@ public class DaoService implements Service {
             // блокирующий старт (?)
             server.start();
 
-            return STUB_COMPLETED_FUTURE;
+            return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
             return CompletableFuture.failedFuture(e);
         }
@@ -55,7 +53,7 @@ public class DaoService implements Service {
         dao.close();
         server.stop();
 
-        return STUB_COMPLETED_FUTURE;
+        return CompletableFuture.completedFuture(null);
     }
 
     private static HttpServerConfig createConfig(int port) {

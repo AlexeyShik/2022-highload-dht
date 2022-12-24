@@ -4,7 +4,7 @@ import ok.dht.Service;
 import ok.dht.ServiceConfig;
 import ok.dht.test.ServiceFactory;
 
-@ServiceFactory(stage = 1, week = 3)
+@ServiceFactory(stage = 1, week = Integer.MAX_VALUE)
 public class DaoServiceFactory implements ServiceFactory.Factory {
 
     @Override
