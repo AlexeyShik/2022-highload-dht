@@ -10,7 +10,7 @@ import ok.dht.test.ponomarev.rest.service.DaoService;
 
 public class Main {
     private static final int PORT = 8080;
-    private static final String URL = "http//:localhost";
+    private static final String URL = "http://localhost";
 
     public static void main(String[] args) throws Exception {
         final String url = URL + ':' + PORT;

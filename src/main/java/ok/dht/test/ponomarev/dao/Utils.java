@@ -1,10 +1,10 @@
 package ok.dht.test.ponomarev.dao;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 
 import jdk.incubator.foreign.MemoryAccess;
 import jdk.incubator.foreign.MemorySegment;
+import one.nio.util.Utf8;
 
 public final class Utils {
     private Utils() {}
@@ -38,14 +38,14 @@ public final class Utils {
             return null;
         }
 
-        return StandardCharsets.UTF_8.decode(data.asByteBuffer()).toString();
+        return Utf8.toString(data.asByteBuffer().array());
     }
 
-    public static MemorySegment memorySegmentFromString(String data) {
+    public static MemorySegment toMemorySegment(String data) {
         if (data == null) {
             return null;
         }
 
-        return MemorySegment.ofArray(data.getBytes(StandardCharsets.UTF_8));
+        return MemorySegment.ofArray(Utf8.toBytes(data));
     }
 }
